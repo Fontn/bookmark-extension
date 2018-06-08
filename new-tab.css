@@ -1,0 +1,145 @@
+:root {
+  --bg-color: #131313;
+  --highlighted-color: #2b2b2b;
+  --text-color: #ffffff;
+  --folder-text-color: #ffff6f;
+  --folder-highlighted-color: #2b2b20;
+  --media-text-color: #cf9fff;
+  --media-highlighted-color: #2b202b;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.nav-folders {
+  padding: 0;
+}
+.nav-folders * {
+  padding: 0;
+}
+/*
+input {
+  display: block;
+  border: none;
+  background-color: inherit;
+  -webkit-appearance: none;
+  .webkit-border-radius: 0;
+  font: inherit;
+  color: inherit;
+  outline-width: 0;
+}*/
+#command-input {
+  width: 40em;
+}
+
+.command-window {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  visibility: hidden;
+}
+
+.command-input-box {
+  overflow: hidden;
+}
+/*
+.command-input-box li {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}*/
+
+.suggestions {
+  opacity: 0.5;
+}
+
+.command-window, .command-window * {
+  padding: 0;
+}
+
+.left-to-right-list {
+  list-style-type:none;
+}
+
+.left-to-right-list>li {
+  margin-bottom: 1em;
+  vertical-align:bottom;
+  display: inline-block;
+  zoom: 1;
+  position: relative;
+  background-color: var(--bg-color);
+}
+
+.nav-folder-depth {
+  margin-bottom: 1em;
+  opacity: 0.5;
+  vertical-align:top;
+  display: inline-block;
+  zoom: 1;
+  position: relative;
+}
+
+.folder a{
+  color: var(--folder-text-color);
+}
+.youtube a, .image a, .video a {
+  color: var(--media-text-color)
+}
+
+.folder, .link {
+  max-width: 20em;
+  min-width: 10em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  visibility: hidden;
+  height: 0;
+}
+.link:hover, .link.selected {
+  background-color: var(--highlighted-color);
+}
+.folder:hover, .folder.selected{
+  background-color: var(--folder-highlighted-color);
+}
+.youtube:hover, .image:hover, .video:hover,  .youtube.selected, .image.selected, .video.selected {
+  background-color: var(--media-highlighted-color);
+}
+
+.preview-depth {
+  opacity: 1;
+}
+.preview-window {
+  position: relative;
+  max-width: 40em;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview-window a {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.preview-window iframe {
+  border: none;
+}
+.preview-content {
+  max-width: 40em;
+  display: table;
+}
+
+.current {
+  opacity: 1;
+}
+.visible {
+  height: auto;
+  visibility: visible;
+}
