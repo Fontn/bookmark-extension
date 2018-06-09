@@ -1,7 +1,7 @@
 {
-  "name": "My custom new tab page",
-  "description": "Overrides the new tab page",
-  "version": "0.1",
+  "name": "Bookmark browser",
+  "description": "Overrides the new tab page with a bookmark browser",
+  "version": "0.2",
   "permissions": [
           "bookmarks"
         ],
