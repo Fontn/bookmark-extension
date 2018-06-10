@@ -72,7 +72,8 @@ function autoComplete(){
     return;
   }
   var inputField = $("#command-input");
-  var currentArgument = getCurrentArgument(inputField.text());
+  var parsed = parse(inputField.text());
+  var currentArgument = getCurrentArgument(parsed, inputField.text());
 
   var newInput;
   if (currentArgument) {
@@ -102,7 +103,6 @@ function autoComplete(){
 
 function cmdSuggestions(cmd) {
   var suggestions = [];
-  cmd = cmd[0];
   for (var c in listOfCommands) {
     var typeSuggestion = undefined;
     for (var i = listOfCommands[c].variants.length - 1; i >= 0; i--) {
@@ -117,20 +117,11 @@ function cmdSuggestions(cmd) {
   return suggestions;
 }
 
-function getCurrentArgument(input){
+function getCurrentArgument(parsed, input){
   var currentArgument = {'cmd': '', 'argNumber': '', 'argInput': '', 'input': ''};
-  var allArgs = input.match(/("[^"]+$|'.*?'|".*?"|\S+)/g);
-  if (!allArgs) {
-    allArgs = [];
-  }
-  var cmd = allArgs.shift();
-  var argNumber = allArgs.length - 1;
-  var currentArg = allArgs.pop();
-
-  if (/\s$/.test(input) && !/\s$/.test(currentArg)) {
-    argNumber += 1;
-    currentArg = "";
-  }
+  var cmd = parsed.command;
+  var argNumber = parsed.args.length - 1;
+  var currentArg = parsed.args.pop();
 
   if (argNumber >= 0) {
     for (var c in listOfCommands) {
@@ -149,10 +140,10 @@ function getCurrentArgument(input){
   }
 }
 
-function argumentSuggestions(input){
+function argumentSuggestions(parsed, input){
   var suggestions = [];
 
-  currentArgument = getCurrentArgument(input);
+  currentArgument = getCurrentArgument(parsed, input);
   if (!currentArgument) {
     return suggestions;
   }
@@ -192,11 +183,13 @@ function argumentSuggestions(input){
 
 function onCommandChangedHandler(input) {
   var suggestions = [];
-  var cmd = input.match(/^\:\w*$/);
-  if (cmd) {
+  var parsed = parse(input);
+  var cmd = parsed.command;
+  var args = parsed.args;
+  if (args.length == 0) {
     suggestions = cmdSuggestions(cmd);
   } else {
-    suggestions = argumentSuggestions(input);
+    suggestions = argumentSuggestions(parsed, input);
   }
 
   currentSuggestion = suggestions[suggestions.length - 1];
@@ -248,14 +241,10 @@ function executeCommand() {
     return;
   }
   var input = $("#command-input").text();
-  var args = input.split(' ');
-  var cmd;
-  if (Array.isArray(args)) {
-    cmd = args.shift();
-  } else {
-    cmd = args;
-  }
-  console.log(input.match(/'(.*?)'|"(.*?)"|(\S)+/g));
+  var parsed = parse(input);
+  var args = parsed.args;
+  var cmd = parsed.command;
+  console.log(parsed);
   if (listOfCommands.delete.variants.includes(cmd)) {
     if (args.length == 1 && args[0]) {
       deleteBookmark(args[0]);
