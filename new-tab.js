@@ -36,7 +36,6 @@ window.onkeydown = function (e) {
     if (code === 27) {
       hideCommandWindow();
     } else if (code === 13) {
-      console.log("enter");
       executeCommand();
     } else if (code === 9) {
       autoComplete();
@@ -53,7 +52,6 @@ window.onkeydown = function (e) {
   } else if (code === 40 || code === 75) {
     moveDown();
   } else if (code === 13) {
-    console.log("enter");
   } else if (code === 46) {
     var currentId = $(".current ul").children(".visible").eq(selectedIndex).attr("id");
     deleteBookmark(currentId);
@@ -86,7 +84,6 @@ function autoComplete(){
     newInput = currentSuggestion.suggestion;
     inputField.text(newInput).append("&nbsp;");
   }
-  console.log(newInput);
 
   currentSuggestion = "";
 
@@ -244,7 +241,6 @@ function executeCommand() {
   var parsed = parse(input);
   var args = parsed.args;
   var cmd = parsed.command;
-  console.log(parsed);
   if (listOfCommands.delete.variants.includes(cmd)) {
     if (args.length == 1 && args[0]) {
       deleteBookmark(args[0]);
@@ -256,6 +252,14 @@ function executeCommand() {
     }
     console.warn("Error: :move invalid arguments");
   } else if (listOfCommands.new.variants.includes(cmd)) {
+    var index = parseInt(args[2]);
+    if (isNaN(index)) {
+      index = undefined;
+    }
+    if (args[0] && !args[3]) {
+      createBookmark(cwdId, args[0], args[1], index);
+      return;
+    }
     console.warn("Error: :new invalid arguments");
   } else {
     console.warn("invalid command");
@@ -299,16 +303,56 @@ function deleteBookmark(id) {
           chrome.bookmarks.removeTree(id, function(){
             moveUp();
             $("#" + id).remove();
+            //success
+            hideCommandWindow();
           });
         } else {
           chrome.bookmarks.remove(id, function(){
             moveUp();
             $("#" + id).remove();
+            //success
+            hideCommandWindow();
           });
         }
       }
     }
   });
+}
+
+function createBookmark(parentId, title, url, index) {
+  chrome.bookmarks.get(parentId, function(result){
+    if(chrome.runtime.lastError) {
+      console.warn("Error: :create not a valid parent id");
+    } else {
+      if (result) {
+        var bookmark = {'parentId': cwdId, 'index':index, 'title':title, 'url':url};
+        chrome.bookmarks.create(bookmark, function(newBookmark){
+          if(chrome.runtime.lastError) {
+            console.warn("Error: :create " + chrome.runtime.lastError.message);
+          } else {
+            //success
+            insertBookmarkToHtml(newBookmark);
+            hideCommandWindow();
+          }
+        });
+      }
+    }
+  });
+}
+// http://i0.kym-cdn.com/photos/images/newsfeed/001/370/829/73e.gif
+function insertBookmarkToHtml(bookmark) {
+  var html = bookmarkItemToHtml(bookmark);
+  var parentDepth = $("#" + bookmark.parentId).parent().parent().index();
+  if ($(".parent-" + bookmark.parentId).length > 0) {
+    if (bookmark.index == 0) {
+      $(".nav-folder-depth").eq(parentDepth + 1).children("ul").children(".parent-" + bookmark.parentId).first().before(html);
+    } else {
+      $(".nav-folder-depth").eq(parentDepth + 1).children("ul").children(".parent-" + bookmark.parentId).eq(bookmark.index - 1).after(html);
+    }
+  } else {
+    $(".nav-folder-depth").eq(parentDepth + 1).children("ul").append(html);
+  }
+  $("#" + bookmark.id).addClass("visible");
 }
 
 function setFolderEvents() {
@@ -323,7 +367,6 @@ function setFolderEvents() {
     currentList.addClass("current");
     currentList.parent().children().each(function(index) {
       if (currentDepth <= index && index < prevDepth) {
-        console.log(index)
         $(this).children("ul").children(".selected").removeClass("selected");
       }
     });
@@ -455,7 +498,7 @@ function updateVisible() {
 function youtubeParser(url){
     var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
     var match = url.match(regExp);
-    return (match&&match[7].length==11)? match[7] : false;
+    return (match && match[7].length==11) ? match[7] : false;
 }
 
 // Creats the html for and appends all bookmarks.
@@ -493,7 +536,7 @@ function bookmarkItemToHtml(item) {
   if (item.parentId) {
     html += 'parent-' + item.parentId + ' ';
   }
-  if (item.children) {
+  if (!item.url) {
     html += 'folder';
   } else {
     html += 'link';
@@ -507,7 +550,7 @@ function bookmarkItemToHtml(item) {
     }
   }
   html += '">\n        ';
-  if (item.children) {
+  if (!item.url) {
     html += '<a href=#folder-' + item.id + '>' + item.title + '</a>';
   } else {
     html += '<a href="' + item.url + '">' + item.title + '</a>';
