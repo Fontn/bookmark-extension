@@ -3,15 +3,16 @@ var selectedIndex = 0;
 var currentDepth = 0;
 var commandWindowOpen = false;
 var bookmarksLoaded = false;
-var cwd = "/";
-var cwdId = 0;
+var cwd = "/Bookmarks bar";
+var cwdId = 1;
 var currentSuggestion;
 
 // Retrives all bookmarks
 chrome.bookmarks.getTree(function(BookmarkTreeNodes){
   initBookmarkNavigation(BookmarkTreeNodes);
-  $("#0").addClass("selected").addClass("visible");
   $(".nav-folder-depth").eq(currentDepth).addClass("current");
+  $(".nav-folder-depth.current").children().children().addClass("visible");
+  $(".nav-folder-depth.current").children().children().eq(selectedIndex).addClass("selected");
   bookmarksLoaded = true;
   updateVisible();
 
@@ -22,7 +23,6 @@ chrome.bookmarks.getTree(function(BookmarkTreeNodes){
   });
 
   // Lazy way of starting in the "Bookmarks bar"
-  moveRight();
   moveRight();
 });
 
@@ -342,6 +342,7 @@ function moveBookmark(id, destinationId, destinationIndex) {
               //Removing and recreating the bookmark in its new position
               $("#" + id).remove();
               insertBookmarkToHtml(newBookmark);
+              updateVisible();
 
               hideCommandWindow();
             }
@@ -472,7 +473,7 @@ function setCwd(){
   var pathArray = currentPath.children("a").map(function() {
     return $(this).text();
   }).get();
-  cwd = pathArray.join('/');
+  cwd = "/" + pathArray.join('/');
   cwdId = currentPath.last().attr("id");
 }
 
@@ -536,12 +537,10 @@ function youtubeParser(url){
 
 // Creats the html for and appends all bookmarks.
 function initBookmarkNavigation(BookmarkTree) {
-  // $(".bookmark-root");
   var root = BookmarkTree[0];
-  root.title = "\/";
   console.log(root)
   var html = '<ul class="nav-folders">\n';
-  var queue = new Array(root);
+  var queue = root.children;
   var depth = 0;
   while (true) {
     html += '  <li class="nav-folder-depth">\n    <ul>\n';
