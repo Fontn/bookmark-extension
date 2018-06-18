@@ -248,12 +248,18 @@ function executeCommand() {
     }
     console.warn("Error: :delete invalid arguments");
   } else if (listOfCommands.move.variants.includes(cmd)) {
-    if (args.length == 2 && args[0] && args[1]) {
+    var index = parseInt(args[2]);
+    if (isNaN(index) || index < 0) {
+      index = undefined;
+    }
+    if (args[0] && !args[3]) {
+      moveBookmark(args[0], args[1], index);
+      return;
     }
     console.warn("Error: :move invalid arguments");
   } else if (listOfCommands.new.variants.includes(cmd)) {
     var index = parseInt(args[2]);
-    if (isNaN(index)) {
+    if (isNaN(index) || index < 0) {
       index = undefined;
     }
     if (args[0] && !args[3]) {
@@ -319,6 +325,33 @@ function deleteBookmark(id) {
   });
 }
 
+function moveBookmark(id, destinationId, destinationIndex) {
+  chrome.bookmarks.get(id, function(result){
+    if(chrome.runtime.lastError) {
+      console.warn("Error: :move not a valid id");
+    } else {
+      chrome.bookmarks.get(destinationId, function(result){
+        if(chrome.runtime.lastError) {
+          console.warn("Error: :move destination not a valid id");
+        } else {
+          var destination = {'parentId':destinationId, 'index':destinationIndex};
+          chrome.bookmarks.move(id, destination, function(newBookmark){
+            if(chrome.runtime.lastError) {
+              console.warn("Error: :move " + chrome.runtime.lastError.message);
+            } else {
+              //Removing and recreating the bookmark in its new position
+              $("#" + id).remove();
+              insertBookmarkToHtml(newBookmark);
+
+              hideCommandWindow();
+            }
+          });
+        }
+      });
+    }
+  });
+}
+
 function createBookmark(parentId, title, url, index) {
   chrome.bookmarks.get(parentId, function(result){
     if(chrome.runtime.lastError) {
@@ -339,7 +372,7 @@ function createBookmark(parentId, title, url, index) {
     }
   });
 }
-// http://i0.kym-cdn.com/photos/images/newsfeed/001/370/829/73e.gif
+
 function insertBookmarkToHtml(bookmark) {
   var html = bookmarkItemToHtml(bookmark);
   var parentDepth = $("#" + bookmark.parentId).parent().parent().index();
