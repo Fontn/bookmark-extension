@@ -35,6 +35,7 @@ window.onkeydown = function (e) {
   if (commandWindowOpen) {
     if (code === 27) {
       hideCommandWindow();
+      hideMessage();
     } else if (code === 13) {
       executeCommand();
     } else if (code === 9) {
@@ -43,7 +44,9 @@ window.onkeydown = function (e) {
     }
     return;
   }
-  if (code === 37 || code === 74) {
+  if (code === 27) {
+    hideMessage();
+  } else if (code === 37 || code === 74) {
     moveLeft();
   } else if (code === 38 || code === 73 ) {
     moveUp();
@@ -61,6 +64,36 @@ window.onkeydown = function (e) {
     return false; // I hate tabbing
   }
 };
+
+/*
+ * Shows a message or error to the user.
+ * type as int: 0=info, 1=warning. 2=error
+ */
+function showMessage(type, title, message) {
+  var messageBox = $("#message-output");
+  messageBox.addClass("visible");
+
+  var border = type;
+  if (type != 0 && type != 1 && type != 2) {
+    border = 0;
+  }
+  // Clear message box
+  messageBox.removeClass("border-0");
+  messageBox.removeClass("border-1");
+  messageBox.removeClass("border-2");
+  messageBox.empty();
+
+  // Appends the message
+  messageBox.addClass("border-" + border);
+  messageBox.append("<h3>" + title + "</h3>");
+  messageBox.append("<pre>" + message + "</pre>");
+  messageBox.append("<p>Press <code>'Esc'</code> to close</p>")
+}
+
+function hideMessage(){
+  $("#message-output").removeClass("visible");
+  $("#message-output").empty();
+}
 
 function autoComplete(){
   if (!currentSuggestion) {
@@ -206,6 +239,11 @@ function onCommandChangedHandler(input) {
 }
 
 var listOfCommands = {
+  'help': {
+    'variants': [":help"],
+    'args': [],
+    'description': "Shows all commands and their descriptions."
+  },
   'delete': {
     'variants': [":delete", ":remove", ":rm"],
     'args': [
@@ -241,12 +279,16 @@ function executeCommand() {
   var parsed = parse(input);
   var args = parsed.args;
   var cmd = parsed.command;
-  if (listOfCommands.delete.variants.includes(cmd)) {
+  if (listOfCommands.help.variants.includes(cmd)) {
+    showHelp();
+    return;
+  } else if (listOfCommands.delete.variants.includes(cmd)) {
     if (args.length == 1 && args[0]) {
       deleteBookmark(args[0]);
       return;
     }
     console.warn("Error: :delete invalid arguments");
+    showMessage(1, "Error :delete", "Invalid arguments");
   } else if (listOfCommands.move.variants.includes(cmd)) {
     var index = parseInt(args[2]);
     if (isNaN(index) || index < 0) {
@@ -257,6 +299,7 @@ function executeCommand() {
       return;
     }
     console.warn("Error: :move invalid arguments");
+    showMessage(1, "Error :move", "Invalid arguments");
   } else if (listOfCommands.new.variants.includes(cmd)) {
     var index = parseInt(args[2]);
     if (isNaN(index) || index < 0) {
@@ -267,8 +310,10 @@ function executeCommand() {
       return;
     }
     console.warn("Error: :new invalid arguments");
+    showMessage(1, "Error :new", "Invalid arguments");
   } else {
     console.warn("invalid command");
+    showMessage(1, "Error", "Invalid command");
   }
   hideCommandWindow();
 }
@@ -299,10 +344,36 @@ function hideCommandWindow() {
   }
 }
 
+function showHelp() {
+  var message = "";
+
+  for (var c in listOfCommands) {
+    message += listOfCommands[c].variants[0];
+    message += "\n  Variants:  ";
+    for (var v in listOfCommands[c].variants) {
+      message += listOfCommands[c].variants[v] + ", ";
+    }
+    if (listOfCommands[c].args[0]) {
+      message += "\n  Arguments:";
+      for (var a in listOfCommands[c].args) {
+        message += "\n    Arg" + a + ":";
+        message += "\n      type:" + listOfCommands[c].args[a].type;
+        message += "   info:" + listOfCommands[c].args[a].info;
+      }
+    }
+    message += "\n  Description:";
+    message += "\n    " + listOfCommands[c].description;
+    message += "\n\n";
+  }
+  showMessage(0, "Help page", message);
+  hideCommandWindow();
+}
+
 function deleteBookmark(id) {
   chrome.bookmarks.get(id, function(result){
     if(chrome.runtime.lastError) {
       console.warn("Error: :delete not a valid id");
+      showMessage(1, "Error :delete", "Not a valid id");
     } else {
       if (result) {
         if (result.children) {
@@ -329,15 +400,18 @@ function moveBookmark(id, destinationId, destinationIndex) {
   chrome.bookmarks.get(id, function(result){
     if(chrome.runtime.lastError) {
       console.warn("Error: :move not a valid id");
+      showMessage(1, "Error :move", "Not a valid id");
     } else {
       chrome.bookmarks.get(destinationId, function(result){
         if(chrome.runtime.lastError) {
           console.warn("Error: :move destination not a valid id");
+          showMessage(1, "Error :move", "Destination not a valid id");
         } else {
           var destination = {'parentId':destinationId, 'index':destinationIndex};
           chrome.bookmarks.move(id, destination, function(newBookmark){
             if(chrome.runtime.lastError) {
               console.warn("Error: :move " + chrome.runtime.lastError.message);
+              showMessage(1, "Error :move", chrome.runtime.lastError.message);
             } else {
               //Removing and recreating the bookmark in its new position
               $("#" + id).remove();
@@ -357,12 +431,14 @@ function createBookmark(parentId, title, url, index) {
   chrome.bookmarks.get(parentId, function(result){
     if(chrome.runtime.lastError) {
       console.warn("Error: :create not a valid parent id");
+      showMessage(1, "Error :create", "Not a valid parent id");
     } else {
       if (result) {
         var bookmark = {'parentId': cwdId, 'index':index, 'title':title, 'url':url};
         chrome.bookmarks.create(bookmark, function(newBookmark){
           if(chrome.runtime.lastError) {
             console.warn("Error: :create " + chrome.runtime.lastError.message);
+            showMessage(1, "Error :create", chrome.runtime.lastError.message);
           } else {
             //success
             insertBookmarkToHtml(newBookmark);

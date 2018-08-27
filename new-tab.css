@@ -6,6 +6,10 @@
   --folder-highlighted-color: #2b2b20;
   --media-text-color: #cf9fff;
   --media-highlighted-color: #2b202b;
+
+  --info-color: #aaaaaa;
+  --warning-color: #aaaa5a;
+  --error-color: #aa5a5a;
 }
 
 body {
@@ -16,6 +20,39 @@ body {
 a {
   color: var(--text-color);
   text-decoration: none;
+}
+
+.border-0, .border-1, .border-2 {
+  border-width: 0.1em;
+  border-style: solid;
+}
+
+.border-0 {
+  border-color: var(--info-color);
+}
+
+.border-1 {
+  border-color: var(--warning-color);
+}
+
+.border-2 {
+  border-color: var(--error-color);
+}
+
+.message-box {
+  visibility: hidden;
+  max-width: 40em;
+  height: auto;
+}
+
+.message-box > * {
+  margin-left: 10px;
+  margin-right: 10px;
+  white-space: pre-wrap;
+}
+
+.message-box > pre {
+  font-size: 1.2em;
 }
 
 .nav-folders {
