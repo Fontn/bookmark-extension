@@ -21,22 +21,15 @@ a {
 .nav-folders {
   padding: 0;
 }
+
 .nav-folders * {
   padding: 0;
 }
-/*
-input {
-  display: block;
-  border: none;
-  background-color: inherit;
-  -webkit-appearance: none;
-  .webkit-border-radius: 0;
-  font: inherit;
-  color: inherit;
-  outline-width: 0;
-}*/
+
 #command-input {
-  width: 40em;
+  min-height: 1em;
+  height: auto;
+  width: 20em;
 }
 
 .command-window {
@@ -50,12 +43,6 @@ input {
 .command-input-box {
   overflow: hidden;
 }
-/*
-.command-input-box li {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}*/
 
 .suggestions {
   opacity: 0.5;
@@ -90,6 +77,7 @@ input {
 .folder a{
   color: var(--folder-text-color);
 }
+
 .youtube a, .image a, .video a {
   color: var(--media-text-color)
 }
@@ -103,12 +91,15 @@ input {
   visibility: hidden;
   height: 0;
 }
+
 .link:hover, .link.selected {
   background-color: var(--highlighted-color);
 }
+
 .folder:hover, .folder.selected{
   background-color: var(--folder-highlighted-color);
 }
+
 .youtube:hover, .image:hover, .video:hover,  .youtube.selected, .image.selected, .video.selected {
   background-color: var(--media-highlighted-color);
 }
@@ -116,6 +107,7 @@ input {
 .preview-depth {
   opacity: 1;
 }
+
 .preview-window {
   position: relative;
   max-width: 40em;
@@ -123,14 +115,17 @@ input {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .preview-window a {
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
+
 .preview-window iframe {
   border: none;
 }
+
 .preview-content {
   max-width: 40em;
   display: table;
@@ -139,6 +134,7 @@ input {
 .current {
   opacity: 1;
 }
+
 .visible {
   height: auto;
   visibility: visible;
