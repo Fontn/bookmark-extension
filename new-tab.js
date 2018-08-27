@@ -207,6 +207,22 @@ function argumentSuggestions(parsed, input){
     suggestions.push({'suggestion': "", 'info': arg.info});
   } else if (type == "int") {
     suggestions.push({'suggestion': "", 'info': arg.info});
+  } else if (type == "update-item") {
+    var items = $(".current ul").children(".visible").map(function() {
+      var updateUrl;
+      if ($(this).hasClass("folder")) {
+        updateUrl = "";
+      } else {
+        var updateUrl = " " + $(this).children("a").attr("href");
+      }
+      var updateSuggestion = $(this).attr("id") + " " + $(this).children("a").text() + updateUrl;
+      return {'suggestion': updateSuggestion, 'info': $(this).children("a").text()};
+    }).get();
+    for (var i = 0, len = items.length; i < len; i++) {
+      if (items[i].suggestion.startsWith(argInput) || items[i].info.startsWith(argInput) || !argInput) {
+        suggestions.push(items[i]);
+      }
+    }
   }
   return suggestions;
 }
@@ -228,7 +244,7 @@ function onCommandChangedHandler(input) {
   $(".command-input-box").children("ul").children(".suggestions").remove();
   if (suggestions){
     for (var i = 0, len = suggestions.length; i < len; i++) {
-      html += '<li class="suggestions">' + suggestions[i].suggestion;
+      html += '<li class="suggestions">' + suggestions[i].suggestion.substring(0, 30);
       if (suggestions[i].info) {
         html += ': ' + suggestions[i].info.substring(0, 30);
       }
@@ -268,7 +284,16 @@ var listOfCommands = {
       {'type': "int", 'info': 'position index (optinal)'}
     ],
     'description': "Creats a new folder or bookmark in the current folder. If no URL is specified, then a folder will be created."
-  }
+  },
+  'update': {
+    'variants': [":update", ":change", ":modify"],
+    'args': [
+      {'type': "update-item", 'info': "item to update"},
+      {'type': "string", 'info': "title (optinal)"},
+      {'type': "string", 'info': "URL (optinal)"}
+    ],
+    'description': "Updates the title and/or the URL of an existing bookmark or folder."
+  },
 };
 
 function executeCommand() {
@@ -310,6 +335,13 @@ function executeCommand() {
       return;
     }
     console.warn("Error: :new invalid arguments");
+    showMessage(1, "Error :new", "Invalid arguments");
+  } else if (listOfCommands.update.variants.includes(cmd)) {
+    if (args[0] && !args[3]) {
+      updateBookmark(args[0], args[1], args[2]);
+      return;
+    }
+    console.warn("Error: :update invalid arguments");
     showMessage(1, "Error :new", "Invalid arguments");
   } else {
     console.warn("invalid command");
@@ -357,8 +389,8 @@ function showHelp() {
       message += "\n  Arguments:";
       for (var a in listOfCommands[c].args) {
         message += "\n    Arg" + a + ":";
-        message += "\n      type:" + listOfCommands[c].args[a].type;
-        message += "   info:" + listOfCommands[c].args[a].info;
+        message += "  type:" + listOfCommands[c].args[a].type;
+        message += "  info:" + listOfCommands[c].args[a].info;
       }
     }
     message += "\n  Description:";
@@ -441,6 +473,31 @@ function createBookmark(parentId, title, url, index) {
             showMessage(1, "Error :create", chrome.runtime.lastError.message);
           } else {
             //success
+            insertBookmarkToHtml(newBookmark);
+            hideCommandWindow();
+          }
+        });
+      }
+    }
+  });
+}
+
+function updateBookmark(id, title, url) {
+  chrome.bookmarks.get(id, function(result){
+    if(chrome.runtime.lastError) {
+      console.warn("Error: :update not a valid id");
+      showMessage(1, "Error :update", "Not a valid id");
+    } else {
+      if (result) {
+        var changes = {'title':title, 'url':url};
+        chrome.bookmarks.update(id, changes, function(newBookmark){
+          if(chrome.runtime.lastError) {
+            console.warn("Error: :update " + chrome.runtime.lastError.message);
+            showMessage(1, "Error :update", chrome.runtime.lastError.message);
+          } else {
+            //Removing and recreating the bookmark with its updated values
+            $("#" + id).remove();
+
             insertBookmarkToHtml(newBookmark);
             hideCommandWindow();
           }
