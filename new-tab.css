@@ -2,14 +2,16 @@
   --bg-color: #131313;
   --highlighted-color: #2b2b2b;
   --text-color: #ffffff;
-  --folder-text-color: #ffff6f;
-  --folder-highlighted-color: #2b2b20;
-  --media-text-color: #cf9fff;
-  --media-highlighted-color: #2b202b;
+  --folder-text-color: #fefe84;
+  --folder-highlighted-color: #303024;
+  --media-text-color: #fea4fe;
+  --media-highlighted-color: #302430;
+  --youtube-text-color: #fe9e84;
+  --youtube-highlighted-color: #302824;
 
-  --info-color: #aaaaaa;
-  --warning-color: #aaaa5a;
-  --error-color: #aa5a5a;
+  --info-color: #a8a19f;
+  --warning-color: #a0a028;
+  --error-color: #a03c28;
 }
 
 body {
@@ -115,8 +117,12 @@ a {
   color: var(--folder-text-color);
 }
 
-.youtube a, .image a, .video a {
+.image a, .video a {
   color: var(--media-text-color)
+}
+
+.youtube a {
+  color: var(--youtube-text-color)
 }
 
 .folder, .link {
@@ -137,8 +143,12 @@ a {
   background-color: var(--folder-highlighted-color);
 }
 
-.youtube:hover, .image:hover, .video:hover,  .youtube.selected, .image.selected, .video.selected {
+.image:hover, .video:hover, .image.selected, .video.selected {
   background-color: var(--media-highlighted-color);
+}
+
+.youtube:hover, .youtube.selected {
+  background-color: var(--youtube-highlighted-color);
 }
 
 .preview-depth {
