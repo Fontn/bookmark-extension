@@ -289,7 +289,7 @@ var listOfCommands = {
     'description': "Creats a new folder or bookmark in the current folder. If no URL is specified, then a folder will be created."
   },
   'update': {
-    'variants': [":update", ":change", ":modify"],
+    'variants': [":update", ":change"],
     'args': [
       {'type': "update-item", 'info': "item to update"},
       {'type': "string", 'info': "title (optinal)"},
@@ -413,15 +413,15 @@ function deleteBookmark(id) {
       if (result) {
         if (result.children) {
           chrome.bookmarks.removeTree(id, function(){
-            moveUp();
             $("#" + id).remove();
+            updateVisible();
             //success
             hideCommandWindow();
           });
         } else {
           chrome.bookmarks.remove(id, function(){
-            moveUp();
             $("#" + id).remove();
+            updateVisible();
             //success
             hideCommandWindow();
           });
@@ -451,7 +451,6 @@ function moveBookmark(id, destinationId, destinationIndex) {
               //Removing and recreating the bookmark in its new position
               $("#" + id).remove();
               insertBookmarkToHtml(newBookmark);
-              updateVisible();
 
               hideCommandWindow();
             }
@@ -528,6 +527,7 @@ function insertBookmarkToHtml(bookmark) {
     $(".nav-folder-depth").eq(parentDepth + 1).children("ul").append(html);
   }
   $("#" + bookmark.id).addClass("visible");
+  updateVisible();
 }
 
 function setFolderEvents() {
@@ -561,7 +561,6 @@ function moveLeft() {
     var previous = $(".nav-folder-depth").eq(currentDepth);
     $(".current").removeClass("current");
     previous.addClass("current");
-    selectedIndex = previous.children("ul").children(".visible").index(previous.children("ul").children(".selected").first());
     previous.children("ul").children(".selected").first().children("a").focus();
     setCwd();
     updateVisible();
@@ -580,12 +579,19 @@ function moveUp() {
 }
 
 function moveRight() {
-  var currentId = $(".current ul").children(".visible").eq(selectedIndex).attr("id");
-  var preview = $(".nav-folder-depth").eq(currentDepth + 1);
   if ($(".preview-window").length != 0) {
     $(".preview-window").click();
     return;
   }
+
+  // If navigating beond existing folder depth, create a new depth layer.
+  var preview = $(".nav-folder-depth").eq(currentDepth + 1);
+  if (preview.length == 0) {
+    addEmptyFolderDepth();
+    preview = $(".nav-folder-depth").eq(currentDepth + 1);
+  }
+
+  var currentId = $(".current ul").children(".visible.selected").first().attr("id");
   if ($("#" + currentId).hasClass("folder")) {
     currentDepth += 1;
     selectedIndex = 0;
@@ -621,7 +627,18 @@ function setCwd(){
 }
 
 function updateVisible() {
-  var currentId = $(".current ul").children(".visible").eq(selectedIndex).attr("id");
+  var currentId = $(".current ul").children(".visible.selected").first().attr("id");
+  if (!currentId) {
+    if ($(".current ul").children(".visible").length <= selectedIndex) {
+      selectedIndex -= 1;
+    }
+    var currentItem = $(".current ul").children(".visible").eq(selectedIndex);
+    currentItem.children("a").focus();
+    currentItem.addClass("selected");
+    currentId = currentItem.attr("id");
+  } else {
+    selectedIndex = $(".current").children("ul").children(".visible").index($(".current").children("ul").children(".selected").first());
+  }
   var preview = $(".nav-folder-depth").eq(currentDepth + 1).children("ul");
   var fog = $(".nav-folder-depth").eq(currentDepth + 2).children("ul");
   if (preview.length != 0) {
@@ -676,6 +693,11 @@ function youtubeParser(url){
     var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
     var match = url.match(regExp);
     return (match && match[7].length==11) ? match[7] : false;
+}
+
+function addEmptyFolderDepth(){
+  var html = '<li class="nav-folder-depth"><ul></ul></li>';
+  $(".bookmark-root .nav-folders").append(html);
 }
 
 // Creats the html for and appends all bookmarks.
