@@ -537,16 +537,16 @@ function setFolderEvents() {
 
     currentList = $(this).parent().parent();
     currentDepth = currentList.index();
-    $("#" + currentId).removeClass("selected").children("a").blur();
+    $("#" + currentId).children("a").blur();
     $(".current").removeClass("current");
     currentList.addClass("current");
     currentList.parent().children().each(function(index) {
-      if (currentDepth <= index && index < prevDepth) {
+      if (currentDepth <= index && index <= prevDepth) {
         $(this).children("ul").children(".selected").removeClass("selected");
       }
     });
     $(this).addClass("selected").children("a").focus();
-    selectedIndex = $(".current").children("ul").children(".selected").first().index();
+    selectedIndex = $(".current").children("ul").children(".visible").index($(".current").children("ul").children(".selected").first());
     updateVisible();
     moveRight();
   });
@@ -561,7 +561,7 @@ function moveLeft() {
     var previous = $(".nav-folder-depth").eq(currentDepth);
     $(".current").removeClass("current");
     previous.addClass("current");
-    selectedIndex = previous.children("ul").children(".selected").first().index();
+    selectedIndex = previous.children("ul").children(".visible").index(previous.children("ul").children(".selected").first());
     previous.children("ul").children(".selected").first().children("a").focus();
     setCwd();
     updateVisible();
@@ -586,13 +586,15 @@ function moveRight() {
     $(".preview-window").click();
     return;
   }
-  if (preview.children("ul").children(".visible").length != 0) {
+  if ($("#" + currentId).hasClass("folder")) {
     currentDepth += 1;
     selectedIndex = 0;
     $("#" + currentId).children("a").blur();
     $(".current").removeClass("current");
     preview.addClass("current");
-    preview.children("ul").children(".visible").first().addClass("selected").children("a").focus();
+    if (preview.children("ul").children(".visible").length != 0){
+      preview.children("ul").children(".visible").first().addClass("selected").children("a").focus();
+    }
     setCwd();
     updateVisible();
   }
@@ -610,7 +612,7 @@ function moveDown() {
 }
 
 function setCwd(){
-  var currentPath = $(".nav-folder-depth ul .selected:not(:last)");
+  var currentPath = $(".nav-folder-depth ul .selected").slice(0, currentDepth);
   var pathArray = currentPath.children("a").map(function() {
     return $(this).text();
   }).get();
