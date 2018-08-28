@@ -315,7 +315,6 @@ function executeCommand() {
       deleteBookmark(args[0]);
       return;
     }
-    console.warn("Error: :delete invalid arguments");
     showMessage(1, "Error :delete", "Invalid arguments");
   } else if (listOfCommands.move.variants.includes(cmd)) {
     var index = parseInt(args[2]);
@@ -326,7 +325,6 @@ function executeCommand() {
       moveBookmark(args[0], args[1], index);
       return;
     }
-    console.warn("Error: :move invalid arguments");
     showMessage(1, "Error :move", "Invalid arguments");
   } else if (listOfCommands.new.variants.includes(cmd)) {
     var index = parseInt(args[2]);
@@ -337,17 +335,14 @@ function executeCommand() {
       createBookmark(cwdId, args[0], args[1], index);
       return;
     }
-    console.warn("Error: :new invalid arguments");
     showMessage(1, "Error :new", "Invalid arguments");
   } else if (listOfCommands.update.variants.includes(cmd)) {
     if (args[0] && !args[3]) {
       updateBookmark(args[0], args[1], args[2]);
       return;
     }
-    console.warn("Error: :update invalid arguments");
     showMessage(1, "Error :new", "Invalid arguments");
   } else {
-    console.warn("invalid command");
     showMessage(1, "Error", "Invalid command");
   }
   hideCommandWindow();
@@ -407,7 +402,6 @@ function showHelp() {
 function deleteBookmark(id) {
   chrome.bookmarks.get(id, function(result){
     if(chrome.runtime.lastError) {
-      console.warn("Error: :delete not a valid id");
       showMessage(1, "Error :delete", "Not a valid id");
     } else {
       if (result) {
@@ -434,18 +428,15 @@ function deleteBookmark(id) {
 function moveBookmark(id, destinationId, destinationIndex) {
   chrome.bookmarks.get(id, function(result){
     if(chrome.runtime.lastError) {
-      console.warn("Error: :move not a valid id");
       showMessage(1, "Error :move", "Not a valid id");
     } else {
       chrome.bookmarks.get(destinationId, function(result){
         if(chrome.runtime.lastError) {
-          console.warn("Error: :move destination not a valid id");
           showMessage(1, "Error :move", "Destination not a valid id");
         } else {
           var destination = {'parentId':destinationId, 'index':destinationIndex};
           chrome.bookmarks.move(id, destination, function(newBookmark){
             if(chrome.runtime.lastError) {
-              console.warn("Error: :move " + chrome.runtime.lastError.message);
               showMessage(1, "Error :move", chrome.runtime.lastError.message);
             } else {
               //Removing and recreating the bookmark in its new position
@@ -464,14 +455,12 @@ function moveBookmark(id, destinationId, destinationIndex) {
 function createBookmark(parentId, title, url, index) {
   chrome.bookmarks.get(parentId, function(result){
     if(chrome.runtime.lastError) {
-      console.warn("Error: :create not a valid parent id");
       showMessage(1, "Error :create", "Not a valid parent id");
     } else {
       if (result) {
         var bookmark = {'parentId': cwdId, 'index':index, 'title':title, 'url':url};
         chrome.bookmarks.create(bookmark, function(newBookmark){
           if(chrome.runtime.lastError) {
-            console.warn("Error: :create " + chrome.runtime.lastError.message);
             showMessage(1, "Error :create", chrome.runtime.lastError.message);
           } else {
             //success
@@ -487,7 +476,6 @@ function createBookmark(parentId, title, url, index) {
 function updateBookmark(id, title, url) {
   chrome.bookmarks.get(id, function(result){
     if(chrome.runtime.lastError) {
-      console.warn("Error: :update not a valid id");
       showMessage(1, "Error :update", "Not a valid id");
     } else {
       if (result) {
@@ -499,7 +487,6 @@ function updateBookmark(id, title, url) {
         }
         chrome.bookmarks.update(id, changes, function(newBookmark){
           if(chrome.runtime.lastError) {
-            console.warn("Error: :update " + chrome.runtime.lastError.message);
             showMessage(1, "Error :update", chrome.runtime.lastError.message);
           } else {
             //Removing and recreating the bookmark with its updated values
@@ -703,7 +690,6 @@ function addEmptyFolderDepth(){
 // Creats the html for and appends all bookmarks.
 function initBookmarkNavigation(BookmarkTree) {
   var root = BookmarkTree[0];
-  console.log(root)
   var html = '<ul class="nav-folders">\n';
   var queue = root.children;
   var depth = 0;
