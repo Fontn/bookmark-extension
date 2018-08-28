@@ -163,7 +163,10 @@ function getCurrentArgument(parsed, input){
         }
         currentArgument.argInput = currentArg;
         currentArgument.argNumber = argNumber;
-        currentArgument.input = input.substring(0, input.length - currentArg.length);
+        currentArgument.input = cmd + " " + parsed.args.join(" ") + "";
+        if (currentArgument.input[currentArgument.input.length - 1] != " ") {
+          currentArgument.input += " ";
+        }
         return currentArgument;
       }
     }
@@ -215,7 +218,7 @@ function argumentSuggestions(parsed, input){
       } else {
         var updateUrl = " " + $(this).children("a").attr("href");
       }
-      var updateSuggestion = $(this).attr("id") + " " + $(this).children("a").text() + updateUrl;
+      var updateSuggestion = $(this).attr("id") + " " + escapeString($(this).children("a").text()) + updateUrl;
       return {'suggestion': updateSuggestion, 'info': $(this).children("a").text()};
     }).get();
     for (var i = 0, len = items.length; i < len; i++) {
@@ -489,7 +492,12 @@ function updateBookmark(id, title, url) {
       showMessage(1, "Error :update", "Not a valid id");
     } else {
       if (result) {
-        var changes = {'title':title, 'url':url};
+        var changes = {'title':title, 'url':''};
+
+        // Not a folder, so the url can be changed.
+        if (result.url) {
+          changes.url = url;
+        }
         chrome.bookmarks.update(id, changes, function(newBookmark){
           if(chrome.runtime.lastError) {
             console.warn("Error: :update " + chrome.runtime.lastError.message);
