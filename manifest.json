@@ -1,13 +1,19 @@
 {
+  "manifest_version": 2,
   "name": "Bookmark browser",
+  "version": "0.4",
+  "version_name": "0.4 alpha",
   "description": "Overrides the new tab page with a bookmark browser",
-  "version": "0.3",
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
   "permissions": [
           "bookmarks"
         ],
   "incognito": "split",
   "chrome_url_overrides": {
     "newtab": "new-tab.html"
-  },
-  "manifest_version": 2
+  }
 }
