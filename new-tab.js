@@ -405,7 +405,7 @@ function deleteBookmark(id) {
       showMessage(1, "Error :delete", "Not a valid id");
     } else {
       if (result) {
-        if (result.children) {
+        if (!result[0].url) {
           chrome.bookmarks.removeTree(id, function(){
             $("#" + id).remove();
             updateVisible();
@@ -482,7 +482,7 @@ function updateBookmark(id, title, url) {
         var changes = {'title':title, 'url':''};
 
         // Not a folder, so the url can be changed.
-        if (result.url) {
+        if (result[0].url) {
           changes.url = url;
         }
         chrome.bookmarks.update(id, changes, function(newBookmark){
