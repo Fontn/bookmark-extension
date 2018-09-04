@@ -16,7 +16,7 @@ chrome.bookmarks.getTree(function(BookmarkTreeNodes){
   bookmarksLoaded = true;
   updateVisible();
 
-  setFolderEvents();
+  setItemEvents();
 
   $("#command-input").on("input", function(event){
     onCommandChangedHandler($(this).text());
@@ -517,26 +517,47 @@ function insertBookmarkToHtml(bookmark) {
   updateVisible();
 }
 
-function setFolderEvents() {
+var timeoutId;
+function setItemEvents() {
   $(".folder").click(function() {
-    var currentId = $(".current ul").children(".visible").eq(selectedIndex).attr("id");
-    var prevDepth = currentDepth;
-
-    currentList = $(this).parent().parent();
-    currentDepth = currentList.index();
-    $("#" + currentId).children("a").blur();
-    $(".current").removeClass("current");
-    currentList.addClass("current");
-    currentList.parent().children().each(function(index) {
-      if (currentDepth <= index && index <= prevDepth) {
-        $(this).children("ul").children(".selected").removeClass("selected");
-      }
-    });
-    $(this).addClass("selected").children("a").focus();
-    selectedIndex = $(".current").children("ul").children(".visible").index($(".current").children("ul").children(".selected").first());
-    updateVisible();
+    selectThisItem($(this));
     moveRight();
   });
+  $(".image, .video, .youtube").hover(function() {
+    if (!timeoutId) {
+      var thisItem = $(this);
+      timeoutId = window.setTimeout(function() {
+        timeoutId = undefined;
+        selectThisItem(thisItem);
+      }, 1000);
+    }
+  },
+  function () {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+      timeoutId = undefined;
+    }
+  });
+}
+
+function selectThisItem(thisItem) {
+  console.log("Do i spam?");
+  var currentId = $(".current ul").children(".visible").eq(selectedIndex).attr("id");
+  var prevDepth = currentDepth;
+
+  currentList = thisItem.parent().parent();
+  currentDepth = currentList.index();
+  $("#" + currentId).children("a").blur();
+  $(".current").removeClass("current");
+  currentList.addClass("current");
+  currentList.parent().children().each(function(index) {
+    if (currentDepth <= index && index <= prevDepth) {
+      $(this).children("ul").children(".selected").removeClass("selected");
+    }
+  });
+  thisItem.addClass("selected").children("a").focus();
+  selectedIndex = $(".current").children("ul").children(".visible").index($(".current").children("ul").children(".selected").first());
+  updateVisible();
 }
 
 function moveLeft() {
